@@ -11,7 +11,8 @@ from modification_utils import (
     BlockType,
     text_to_children,
     block_to_html_node,
-    markdown_to_html_node
+    markdown_to_html_node,
+    extract_title
 )
 
 
@@ -884,5 +885,47 @@ print("Hello")
         )
 
         self.assertEqual(html, expected)
+
+
+class TestExtractTitle(unittest.TestCase):
+    def test_simple_title(self):
+        markdown = "# Hello World"
+        self.assertEqual(extract_title(markdown), "Hello World")
+
+    def test_title_with_whitespace(self):
+        markdown = "#   Hello World   "
+        self.assertEqual(extract_title(markdown), "Hello World")
+
+    def test_title_after_paragraph(self):
+        markdown = """Some text
+
+# My Title
+
+More text"""
+
+        self.assertEqual(extract_title(markdown), "My Title")
+
+    def test_multiple_headings(self):
+        markdown = """## Subtitle
+
+# Main Title
+
+### Another heading"""
+
+        self.assertEqual(extract_title(markdown), "Main Title")
+
+    def test_no_title(self):
+        markdown = "Just a paragraph without a heading"
+
+        with self.assertRaises(ValueError):
+            extract_title(markdown)
+
+    def test_only_h2(self):
+        markdown = "## Not an H1"
+
+        with self.assertRaises(ValueError):
+            extract_title(markdown)
+
+
 if __name__ == "__main__":
     unittest.main()

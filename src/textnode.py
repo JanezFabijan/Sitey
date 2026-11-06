@@ -29,11 +29,8 @@ class TextNode:
         return f"TextNode(text={self.text}, text_type={self.text_type}, url={self.url})"
 
 
-def text_node_to_html_node(text_node: TextNode) -> LeafNode:
-    if text_node.text_type not in TextType:
-        raise Exception("Wrong text type.")
 
-    
+def text_node_to_html_node(text_node: TextNode) -> LeafNode:
     match text_node.text_type:
         case TextType.TEXT:
             return LeafNode(None, text_node.text)
@@ -43,14 +40,26 @@ def text_node_to_html_node(text_node: TextNode) -> LeafNode:
 
         case TextType.ITALIC:
             return LeafNode("i", text_node.text)
-            
+
         case TextType.CODE:
             return LeafNode("code", text_node.text)
 
         case TextType.LINK:
-            return LeafNode("a", text_node.text, {"href": "www.example.com"})
+            if text_node.url is None:
+                raise ValueError("Link node must have a URL")
+
+            return LeafNode("a", text_node.text, {"href": text_node.url})
+
+        case TextType.IMAGE:
+            if text_node.url is None:
+                raise ValueError("Image node must have a URL")
+
+            return LeafNode(
+                "img",
+                "",
+                {"src": text_node.url, "alt": text_node.text},
+            )
 
         case _:
-            return LeafNode("img", "", {"sec": "www.some-image.jpg"})
+            raise ValueError(f"Unsupported text type: {text_node.text_type}")
 
-            

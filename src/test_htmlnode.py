@@ -61,3 +61,15 @@ class TestHTMLNode(unittest.TestCase):
             parent_node.to_html(),
             "<div><span><b>grandchild</b></span></div>",
     )
+
+    def test_image_with_empty_value(self):
+        node = LeafNode(
+            "img",
+            "",
+            {"src": "/images/tolkien.png", "alt": "Tolkien"},
+        )
+
+        self.assertEqual(
+            node.to_html(),
+            '<img src="/images/tolkien.png" alt="Tolkien"></img>',
+        )
