@@ -29,7 +29,6 @@ def copy_static() -> None:
 
     copy_directory(source, destination)
 
-
 def generate_page(
     from_path: Path,
     template_path: Path,
@@ -59,16 +58,39 @@ def generate_page(
     # 7. Write generated HTML
     dest_path.write_text(page, encoding="utf-8")
 
+def generate_pages_recursive(
+    dir_path_content: Path,
+    template_path: Path,
+    dest_dir_path: Path,
+) -> None:
+    for item in dir_path_content.iterdir():
+
+        if item.is_dir():
+            generate_pages_recursive(
+                item,
+                template_path,
+                dest_dir_path / item.name,
+            )
+
+        elif item.is_file() and item.suffix == ".md":
+            dest_path = dest_dir_path / f"{item.stem}.html"
+
+            generate_page(
+                item,
+                template_path,
+                dest_path,
+            )
+
 
 def main():
     root = Path(__file__).resolve().parent.parent
 
     copy_static()
 
-    generate_page(
-        root / "content" / "index.md",
+    generate_pages_recursive(
+        root / "content",
         root / "template.html",
-        root / "public" / "index.html",
+        root / "public",
     )
 
 if __name__ == "__main__":
