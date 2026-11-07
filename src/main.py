@@ -2,6 +2,7 @@
 from pathlib import Path
 import shutil
 from modification_utils import markdown_to_html_node, extract_title
+import sys
 
 def copy_directory(source: Path, destination: Path) -> None:
     destination.mkdir(parents=True, exist_ok=True)
@@ -19,7 +20,7 @@ def copy_directory(source: Path, destination: Path) -> None:
 def copy_static() -> None:
     root = Path(__file__).resolve().parent.parent
     source = root / "static"
-    destination = root / "public"
+    destination = root / "docs"
 
     if not source.is_dir():
         raise FileNotFoundError(f"Missing static directory: {source}")
@@ -33,6 +34,7 @@ def generate_page(
     from_path: Path,
     template_path: Path,
     dest_path: Path,
+    basepath: str,
 ) -> None:
     print(f"Generating page from {from_path} to {dest_path}")
 
@@ -52,6 +54,10 @@ def generate_page(
     page = template.replace("{{ Title }}", title)
     page = page.replace("{{ Content }}", html)
 
+    # Adjust paths for GitHub Pages
+    page = page.replace('href="/', f'href="{basepath}')
+    page = page.replace('src="/', f'src="{basepath}')
+
     # 6. Create destination directory if needed
     dest_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -62,14 +68,15 @@ def generate_pages_recursive(
     dir_path_content: Path,
     template_path: Path,
     dest_dir_path: Path,
+    basepath: str,
 ) -> None:
     for item in dir_path_content.iterdir():
-
         if item.is_dir():
             generate_pages_recursive(
                 item,
                 template_path,
                 dest_dir_path / item.name,
+                basepath,
             )
 
         elif item.is_file() and item.suffix == ".md":
@@ -79,18 +86,21 @@ def generate_pages_recursive(
                 item,
                 template_path,
                 dest_path,
+                basepath,
             )
-
 
 def main():
     root = Path(__file__).resolve().parent.parent
+
+    basepath = sys.argv[1] if len(sys.argv) > 1 else "/"
 
     copy_static()
 
     generate_pages_recursive(
         root / "content",
         root / "template.html",
-        root / "public",
+        root / "docs",
+        basepath,
     )
 
 if __name__ == "__main__":
